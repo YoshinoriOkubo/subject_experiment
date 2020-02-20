@@ -4,6 +4,7 @@ from colorama import Fore, Back, Style
 from tabulate import tabulate
 import csv
 import sys
+import random
 from ship import Ship
 from my_modules import *
 from constants  import *
@@ -241,15 +242,16 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                 if year < PAYBACK_PERIOD:
                     current_newbuilding = newbuilding_data[pattern][time]['price']
                     current_secondhand = secondhand_data[pattern][time]['price']
-                    print()
+                    #print()
                     if withRule:
                         recomend = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.exist_number+ship.order_number,freight_outward_data[pattern],year*12+month)
                         print(Fore.RED + 'The action rule recommends is {}'.format(recomend) + Style.RESET_ALL)
-                    print('Now your company own {} ships'.format(Fore.BLUE + str(ship.exist_number+ship.order_number) + Style.RESET_ALL))
-                    decisions = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time,ship_number,freight_income)
+                    #print('Now your company own {} ships'.format(Fore.BLUE + str(ship.exist_number+ship.order_number) + Style.RESET_ALL))
+                    #decisions = depict(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data,cash_data,pattern,time,ship_number,freight_income)
                     #decisions = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.exist_number+ship.order_number,freight_outward_data[pattern],year*12+month)
                     #decisions = decision_csv[pattern][decision_number]
                     #decision_number += 1
+                    decisions = str(random.randint(0,1)) + str(random.randint(0,1)) + str(random.randint(0,1))
                     answer = adapt_rule(current_oil_price,current_freight_rate_outward,current_exchange,ship.exist_number+ship.order_number,freight_outward_data[pattern],year*12+month)
                     if int(decisions[0]) == 1:
                         cash_flow += ship.buy_new_ship(newbuilding_data[pattern][time]['price'],int(decisions[0])) 
@@ -276,7 +278,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                     decision_data.append('')
             cash_in_yen += exchange_data[pattern][year*12+11]['price']*(cash_flow/((1 + DISCOUNT_RATE) ** (year + 1)))
             s = 'NOW YOUR CASH IS {} MILLION YEN'.format(int(cash_in_yen/1000000))
-            print(Fore.GREEN + s + Style.RESET_ALL)
+            #print(Fore.GREEN + s + Style.RESET_ALL)
             cash_in_yen_data[pattern][-1] = cash_in_yen
             DISCOUNT = (1 + DISCOUNT_RATE) ** (year + 1)
             cash_flow *= exchange_data[pattern][year*12+11]['price']
@@ -284,6 +286,7 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
         fitness /= HUNDRED_MILLION# one hundred millon JPY
         Record.append(fitness)
         export(pattern,month_data,decision_data,cash_data[pattern],cash_in_yen_data[pattern])
+        '''
         print('if you are ready to continue, enter yes')
         flag = True
         while flag:
@@ -294,13 +297,19 @@ def fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchang
                 print()
                 print()
                 print()
+        '''
     e, sigma = calc_statistics(Record)
     return [e,sigma]
 
 def main():
     oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data = load_generated_sinario()
-    e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
-    print('average profit = ','{:.2E}'.format(int(e*HUNDRED_MILLION)))
+    score = []
+    simulation_number = 100000
+    for i in range(simulation_number):
+        e,sigma = fitness_function(oil_data,freight_outward_data,freight_homeward_data,exchange_data,demand_data,supply_data,newbuilding_data,secondhand_data)
+        score.append(e)
+    #print(score)
+    print('average profit = ','{:.3E}'.format(int(sum(score)*HUNDRED_MILLION/simulation_number)))
     print('The simulation is over.')
     print('Thank you for your cooperation')
 
